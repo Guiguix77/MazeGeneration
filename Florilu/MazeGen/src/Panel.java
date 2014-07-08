@@ -1,3 +1,4 @@
+import GUI.buttons.util.ButtonStates;
 import GUI.buttons.util.Level;
 import GUI.buttons.util.NoSolvingAlgorithmSelectedException;
 import GUI.menus.ChooseSolvingAlgorithmMenu;
@@ -40,6 +41,9 @@ public class Panel extends BasicGameState{
     public static Queue cellStack = new LinkedList();
     public ArrayList<Cell> solvingVisited = new ArrayList<>();
     public ArrayList<Cell> genVisited = new ArrayList<>();
+    public ArrayList<Cell> genBacktrack = new ArrayList<>();
+    public ArrayList<Cell> dfsList = new ArrayList<>();
+    public ArrayList<Cell> dfsBacktracked = new ArrayList<>();
 
     public int totalCells = ((CELLS - 1) / 2) * ((CELLS - 1) / 2);
 
@@ -54,6 +58,7 @@ public class Panel extends BasicGameState{
     public ArrayList<Cell> path = new ArrayList<>();
 
     public static Cell currentGenCell;
+    public Cell currentDFSCell;
 
     public boolean wall;
     public boolean mousePressing = false;
@@ -78,7 +83,7 @@ public class Panel extends BasicGameState{
     }
 
     public Panel(){
-
+        ButtonStates.BFSState = true;
     }
 
     @Override
@@ -209,11 +214,56 @@ public class Panel extends BasicGameState{
             if(start == null || goal == null){
                 this.search = false;
             }else{
-                if(stateManager.algorithmMenu.dfsButton.selected){
+                if(ButtonStates.DFSState){
+                    if(solvingVisited.size() < 1){
+                        solvingVisited.add(cells[start.gridPosX][start.gridPosY]);
+                        cells[start.gridPosX][start.gridPosY].solvingVisited = true;
+                        currentDFSCell = cells[start.gridPosX][start.gridPosY];
+                    }else{
+                        for(int x = 0; x < CELLS; x++){
+                            for(int y = 0; y < CELLS; y++){
+                                cells[x][y].dfsCheckNeighbors();
+                            }
+                        }
+                        if(currentDFSCell.goal){
+                            this.search = false;
+                            this.drawWay = true;
+                            this.end = currentDFSCell;
+                            getPath(false, null);
+                            if(displayingMaze){
+                                mazeSolved = true;
+                            }
+                            foundSolution = true;
+                        }else{
+                            if(solvingVisited.size() != (CELLS * CELLS)){
+                                ArrayList<Cell> currentNeighbors = new ArrayList<>();
+                                if(currentDFSCell.dfsNorth != null && !currentDFSCell.dfsNorth.solvingVisited && !currentDFSCell.dfsNorth.wall){
+                                    currentNeighbors.add(currentDFSCell.dfsNorth);
+                                }else if(currentDFSCell.dfsEast != null && !currentDFSCell.dfsEast.solvingVisited && !currentDFSCell.dfsEast.wall){
+                                    currentNeighbors.add(currentDFSCell.dfsEast);
+                                }else if(currentDFSCell.dfsSouth != null && !currentDFSCell.dfsSouth.solvingVisited && !currentDFSCell.dfsSouth.wall){
+                                    currentNeighbors.add(currentDFSCell.dfsSouth);
+                                }else if(currentDFSCell.dfsWest != null && !currentDFSCell.dfsWest.solvingVisited && !currentDFSCell.dfsWest.wall){
+                                    currentNeighbors.add(currentDFSCell.dfsWest);
+                                }else{
+                                    ;
+                                }
+                                if(currentNeighbors.size() > 0){
+                                    Cell neighbor = currentNeighbors.get(0);
+                                    neighbor.solvingPrevious = currentDFSCell;
+                                    neighbor.solvingVisited = true;
+                                    currentDFSCell = neighbor;
+                                }else{
+                                    dfsBacktracked.add(currentDFSCell);
+                                    dfsBacktracked.add(currentDFSCell.solvingPrevious);
+                                    currentDFSCell = currentDFSCell.solvingPrevious;
+                                }
+                            }
+                        }
+                    }
+                }else if(ButtonStates.AStarState){
 
-                }else if(stateManager.algorithmMenu.aStarButton.selected){
-
-                }else if(stateManager.algorithmMenu.bfsButton.selected){
+                }else if(ButtonStates.BFSState){
                     if(solvingVisited.size() < 1){
                         solvingVisited.add(cells[start.gridPosX][start.gridPosY]);
                         cells[start.gridPosX][start.gridPosY].solvingVisited = true;
@@ -398,6 +448,16 @@ public class Panel extends BasicGameState{
             }
         }
 
+        if(this.search){
+            if(dfsBacktracked.size() > 0){
+                for(int i = 0; i < dfsBacktracked.size(); i++){
+                    g.setColor(Color.blue);
+                    g.fillRect(dfsBacktracked.get(i).gridPosX * ratio, dfsBacktracked.get(i).gridPosY * ratio, ratio, ratio);
+                    g.setColor(Color.black);
+                }
+            }
+        }
+
         if(this.path.size() > 0){
             for(int i = 0; i < path.size(); i++){
                 if(!foundSolution && search){
@@ -408,6 +468,12 @@ public class Panel extends BasicGameState{
                     cells[path.get(i).gridPosX][path.get(i).gridPosY].way = true;
                 }
             }
+        }
+
+        if(currentDFSCell != null){
+            g.setColor(Color.green);
+            g.fillRect(currentDFSCell.gridPosX * ratio, currentDFSCell.gridPosY * ratio, ratio, ratio);
+            g.setColor(Color.black);
         }
     }
 
@@ -553,6 +619,7 @@ public class Panel extends BasicGameState{
         displayingMaze = false;
         mazeSolved = false;
         foundSolution = false;
+        dfsBacktracked = new ArrayList<>();
         for(int i = 0; i < cells.length; i++){
             for(int j = 0; j < cells.length; j++){
                 cells[i][j].wall = false;
@@ -562,6 +629,10 @@ public class Panel extends BasicGameState{
                 cells[i][j].north = null;
                 cells[i][j].west = null;
                 cells[i][j].south = null;
+                cells[i][j].dfsNorth = null;
+                cells[i][j].dfsEast = null;
+                cells[i][j].dfsSouth = null;
+                cells[i][j].dfsWest = null;
                 cells[i][j].genVisited = false;
                 cells[i][j].goal = false;
                 cells[i][j].start = false;

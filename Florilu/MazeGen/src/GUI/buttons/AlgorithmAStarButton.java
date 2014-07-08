@@ -1,6 +1,7 @@
 package GUI.buttons;
 
 import GUI.buttons.util.AGUIFeatures;
+import GUI.buttons.util.ButtonStates;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -16,8 +17,8 @@ public class AlgorithmAStarButton extends AGUIFeatures {
 
     @Override
     public void doWhenClick(StateBasedGame stateBasedGame) {
-        this.selected = !selected;
-        this.setText("AStar = " + this.selected, this.font);
+        ButtonStates.AStarState = !ButtonStates.AStarState;
+        this.setText("AStar = " + ButtonStates.AStarState, this.font);
 
         System.out.println("HEY");
     }

@@ -1,6 +1,7 @@
 package GUI.buttons;
 
 import GUI.buttons.util.AGUIFeatures;
+import GUI.buttons.util.ButtonStates;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -16,7 +17,7 @@ public class AlgorithmBFSButton extends AGUIFeatures {
 
     @Override
     public void doWhenClick(StateBasedGame stateBasedGame) {
-        this.selected = !selected;
-        this.setText("BFS = " + this.selected, this.font);
+        ButtonStates.BFSState = !ButtonStates.BFSState;
+        this.setText("BFS = " + ButtonStates.BFSState, this.font);
     }
 }

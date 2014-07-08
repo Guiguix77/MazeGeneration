@@ -13,12 +13,42 @@ public class Cell {
     public Cell[] solvingChild = new Cell[8];
     public Cell solvingPrevious, genBacktrack;
     public Cell north, east, south, west;
+    public Cell dfsNorth, dfsEast, dfsSouth, dfsWest;
 
     public Cell(int x, int y, float ratio, boolean wall) {
         this.gridPosX = x;
         this.gridPosY = y;
         this.ratio = ratio;
         this.wall = wall;
+    }
+
+    public void dfsCheckNeighbors(){
+        if(!this.wall){
+            if(this.gridPosY > 0){
+                if(Panel.cells[this.gridPosX][this.gridPosY - 1].wall == false){
+                    this.dfsNorth = null;
+                    this.dfsNorth = Panel.cells[this.gridPosX][this.gridPosY - 1];
+                }
+            }
+            if(this.gridPosX != Panel.CELLS - 1){
+                if(Panel.cells[this.gridPosX + 1][this.gridPosY].wall == false){
+                    this.dfsEast = null;
+                    this.dfsEast = Panel.cells[this.gridPosX + 1][this.gridPosY];
+                }
+            }
+            if(this.gridPosY != Panel.CELLS - 1){
+                if(Panel.cells[this.gridPosX][this.gridPosY + 1].wall == false){
+                    this.dfsSouth = null;
+                    this.dfsSouth = Panel.cells[this.gridPosX][this.gridPosY + 1];
+                }
+            }
+            if(this.gridPosX > 0){
+                if(Panel.cells[this.gridPosX - 1][this.gridPosY].wall == false){
+                    this.dfsWest = null;
+                    this.dfsWest = Panel.cells[this.gridPosX - 1][this.gridPosY];
+                }
+            }
+        }
     }
 
     public void genCheckNeighbors() {
